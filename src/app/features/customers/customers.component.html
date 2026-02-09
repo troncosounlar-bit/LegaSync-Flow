@@ -1,0 +1,395 @@
+<div class="dashboard-wrapper">
+  <section class="nexus-card">
+    <header class="nexus-header">
+      <div class="header-content">
+        <div class="header-icon">
+          <span class="icon-circle">👥</span>
+        </div>
+        <div class="header-text">
+          <h2>LegaSync Flow CRM</h2>
+          <p class="subtitle">Inteligencia de Clientes y Pipeline de Ventas</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <div class="view-toggle-group">
+          <button 
+            class="btn-toggle" 
+            [class.active]="currentView() === 'kanban'" 
+            (click)="toggleView('kanban')">
+            📋 Pipeline
+          </button>
+          <button 
+            class="btn-toggle" 
+            [class.active]="currentView() === 'table'" 
+            (click)="toggleView('table')">
+            📊 Tabla
+          </button>
+        </div>
+
+        <button class="btn-refresh-text" (click)="customerService.getCustomers()" title="Sincronizar Datos">
+          <span class="icon">🔄</span> Actualizar
+        </button>
+
+        <button 
+          class="btn-primary-nexus" 
+          [class.btn-cancel]="showForm()" 
+          (click)="showForm.set(!showForm())">
+          {{ showForm() ? '✕ Cancelar' : '＋ Nuevo Cliente' }}
+        </button>
+      </div>
+    </header>
+
+    @if (showForm()) {
+      <div class="creation-panel animate-fade-in">
+        <form (ngSubmit)="saveCustomer()" #customerForm="ngForm">
+          <div class="form-grid">
+            <div class="input-group">
+              <label for="reg-name">Nombre del Contacto</label>
+              <input 
+                id="reg-name"
+                type="text" 
+                name="name" 
+                [(ngModel)]="newCustomer.name" 
+                placeholder="Ej: John Doe" 
+                class="nexus-input" 
+                required 
+                autocomplete="name">
+            </div>
+
+            <div class="input-group">
+              <label for="reg-company">Empresa</label>
+              <input 
+                id="reg-company"
+                type="text" 
+                name="company" 
+                [(ngModel)]="newCustomer.company" 
+                placeholder="Ej: Tech Solutions Inc" 
+                class="nexus-input" 
+                required 
+                autocomplete="organization">
+            </div>
+
+            <div class="input-group">
+              <label for="reg-email">Email Corporativo</label>
+              <input 
+                id="reg-email"
+                type="email" 
+                name="email" 
+                [(ngModel)]="newCustomer.email" 
+                placeholder="john@empresa.com" 
+                class="nexus-input" 
+                required 
+                email 
+                autocomplete="email"> 
+            </div>
+
+            <div class="input-group">
+              <label for="reg-phone">Teléfono</label>
+              <input 
+                id="reg-phone"
+                type="tel" 
+                name="phone" 
+                [(ngModel)]="newCustomer.phone" 
+                placeholder="+54 9 11 ..." 
+                class="nexus-input" 
+                autocomplete="tel"> 
+            </div>
+
+            <div class="input-group">
+              <label for="reg-deal">Valor Estimado (USD)</label>
+              <input 
+                id="reg-deal"
+                type="number" 
+                name="deal_value" 
+                [(ngModel)]="newCustomer.deal_value" 
+                placeholder="0.00" 
+                class="nexus-input"> 
+            </div>
+
+            <div class="input-group">
+              <label for="reg-priority">Prioridad</label>
+              <select id="reg-priority" name="priority" [(ngModel)]="newCustomer.priority" class="nexus-input">
+                <option value="low">Baja</option>
+                <option value="medium">Media</option>
+                <option value="high">Alta</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-register" [disabled]="!customerForm.valid"> 
+              <span class="icon">💾</span> Registrar Cliente en Pipeline
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (customerService.isLoading()) {
+      <div class="nexus-loader">
+        <div class="spinner"></div>
+        <p>Sincronizando con LegaSync Cloud...</p>
+      </div>
+    } @else {
+      
+      @if (currentView() === 'kanban') {
+        <div class="kanban-wrapper animate-fade-in" cdkDropListGroup>
+          <div class="kanban-board">
+            @for (column of columns; track column.id) {
+              <div class="kanban-column">
+                <div class="column-header">
+                  <span class="status-indicator" [attr.data-status]="column.id"></span>
+                  <h3>{{ column.title }}</h3>
+                  <span class="count-badge">{{ getCustomersByStatus(column.id).length }}</span>
+                </div>
+
+                <div
+                  cdkDropList
+                  [cdkDropListData]="getCustomersByStatus(column.id)"
+                  (cdkDropListDropped)="drop($event, column.id)"
+                  class="kanban-list">
+                  
+                  @for (customer of getCustomersByStatus(column.id); track customer.id) {
+                    <div class="kanban-card" cdkDrag (click)="openCustomerDetails(customer)">
+                      <div class="custom-placeholder" *cdkDragPlaceholder></div>
+                      <div class="card-priority-line" [attr.data-priority]="customer.priority"></div>
+                      <div class="card-body">
+                        <div class="card-title-row">
+                          <h4>{{ customer.name }}</h4>
+                          <button class="btn-mini-delete" (click)="deleteCustomer(customer.id!); $event.stopPropagation()" title="Eliminar">🗑️</button>
+                        </div>
+                        <span class="company-name">{{ customer.company }}</span>
+                        
+                        <div class="card-meta">
+                          <span class="deal-tag">${{ customer.deal_value || 0 }}</span>
+                          <button class="btn-action-nexus" (click)="viewInvoices(customer.company); $event.stopPropagation()">
+                            <span class="icon">📂</span> Facturas
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  } @empty {
+                    <div class="column-empty">
+                      <span class="icon">📥</span>
+                      <p>Mover aquí</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (currentView() === 'table') {
+        <div class="table-section animate-fade-in">
+          <div class="table-header-nexus">
+            <h3 class="table-title">Cuentas Activas</h3>
+            <span class="records-badge-nexus">
+              {{ customerService.customers().length }} Registros
+            </span>
+          </div>
+          
+          <div class="responsive-table-container">
+            <table class="nexus-table">
+              <thead>
+                <tr>
+                  <th class="font-extrabold">Nombre</th>
+                  <th class="font-extrabold">Empresa</th>
+                  <th class="font-extrabold">Estado</th>
+                  <th class="font-extrabold">Email</th>
+                  <th class="text-center font-extrabold">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (customer of paginatedCustomers(); track customer.id) {
+                  <tr class="animate-row">
+                    <td class="font-bold text-slate-900">{{ customer.name }}</td>
+                    <td class="font-bold text-slate-900">{{ customer.company }}</td>
+                    <td><span class="status-pill" [attr.data-status]="customer.status">{{ customer.status | titlecase }}</span></td>
+                    <td class="text-slate-500">{{ customer.email }}</td>
+                    <td class="actions-cell">
+                      <div class="flex justify-center items-center gap-6">
+                        <button class="btn-table-action-view" (click)="openBillingForCustomer(customer)" title="Ver Facturas">
+                          <span class="icon">📂</span>
+                        </button>
+                        <button class="btn-table-action-delete" (click)="deleteCustomer(customer.id!); $event.stopPropagation()" title="Eliminar Cliente">
+                          <span class="icon">🗑️</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          @if (customerService.customers().length > itemsPerPage) {
+            <div class="pagination-controls">
+              <button class="btn-page" [disabled]="currentPage() === 1" (click)="setPage(currentPage() - 1)">&lsaquo;</button>
+              <span class="page-info">Página <strong>{{ currentPage() }}</strong> de {{ totalPages() }}</span>
+              <button class="btn-page" [disabled]="currentPage() >= totalPages()" (click)="setPage(currentPage() + 1)">&rsaquo;</button>
+            </div>
+          }
+        </div>
+      }
+    }
+    
+    <footer class="nexus-footer">
+      <div class="status-group">
+        <span class="dot pulse"></span>
+        <span>LegaSync Flow Engine v2.5</span>
+      </div>
+      <div class="info-group">
+        Database: <span class="db-link">PostgreSQL</span> | Cloud Sync: <span class="highlight">Active</span>
+      </div>
+    </footer>
+  </section>
+
+  <aside class="nexus-drawer" [class.open]="isDrawerOpen()">
+    <div class="drawer-overlay" (click)="closeDrawer()"></div>
+    <div class="drawer-content">
+      @if (selectedCustomer()) {
+        <header class="drawer-header">
+          <div class="header-info">
+            <span class="status-badge" [attr.data-status]="selectedCustomer()?.status">
+              {{ selectedCustomer()?.status | titlecase }}
+            </span>
+            <h3>{{ selectedCustomer()?.name }}</h3>
+            <p>{{ selectedCustomer()?.company }}</p>
+          </div>
+          <button class="btn-close" (click)="closeDrawer()">✕</button>
+        </header>
+
+        <div class="drawer-body-scrollable">
+          <div class="info-grid">
+            <div class="info-item">
+              <label>Email</label>
+              <span>{{ selectedCustomer()?.email }}</span>
+            </div>
+            <div class="info-item">
+              <label>Teléfono</label>
+              <span>{{ selectedCustomer()?.phone || 'No registrado' }}</span>
+            </div>
+          </div>
+
+          <div class="nexus-balance-container">
+            <div class="balance-header">
+              <h3>BALANCE DEL PROYECTO</h3>
+              <div class="card-neto" [class.negative]="profitMargin() < 0">
+                <span class="neto-label">Neto:</span>
+                <span class="amount-dynamic">${{ profitMargin() | number:'1.2-2' }}</span>
+              </div>
+            </div>
+
+            <div class="expense-form-pro">
+              <div class="form-row">
+                <div class="input-wrapper">
+                  <label for="exp-desc">Descripción</label>
+                  <input id="exp-desc" type="text" [(ngModel)]="newExpense.description" placeholder="Ej: Servidor" class="nexus-input-dark">
+                </div>
+                <div class="input-wrapper">
+                  <label for="exp-vendor">Proveedor</label>
+                  <input id="exp-vendor" type="text" [(ngModel)]="newExpense.vendor" placeholder="Ej: AWS" class="nexus-input-dark">
+                </div>
+              </div>
+
+              <div class="form-row mt-2">
+                <div class="input-wrapper">
+                  <label for="exp-amount">Monto $</label>
+                  <input id="exp-amount" type="number" [(ngModel)]="newExpense.amount" placeholder="0.00" class="nexus-input-dark">
+                </div>
+                <div class="input-wrapper">
+                  <label for="exp-date">Fecha</label>
+                  <input id="exp-date" type="date" [(ngModel)]="newExpense.date" class="nexus-input-dark">
+                </div>
+                <button class="btn-add-nexus" (click)="addExpense()" [disabled]="!newExpense.description || !newExpense.amount">
+                  <span>+</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="mini-expense-list">
+              @for (item of expenses(); track item.id) {
+                <div class="expense-item-pro">
+                  <div class="expense-info">
+                    <span class="desc">{{ item.description }}</span>
+                    <span class="vendor-date">{{ item.vendor }} | {{ item.date | date:'dd/MM/yy' }}</span>
+                  </div>
+                  <div class="expense-actions">
+                    <span class="price">-${{ item.amount | number:'1.2-2' }}</span>
+                    <button class="btn-del-exp" (click)="deleteExpense(item.id!)" title="Eliminar Gasto">✕</button>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty-msg">No hay gastos.</div>
+              }
+            </div>
+          </div>
+
+          <app-subscription-manager 
+            [customerId]="selectedCustomer()!.id!"
+            (subscriptionChanged)="loadActiveSubscriptions(selectedCustomer()!.id!)">
+          </app-subscription-manager>
+
+          <div class="section-header-elite">
+            <div class="icon-wrapper">📝</div>
+            <h4>Notas de Seguimiento</h4>
+          </div>
+
+          <div class="notes-container">
+            <label for="nexus-notes" class="sr-only">Notas de seguimiento</label>
+            <textarea 
+              id="nexus-notes"
+              class="nexus-notes-area" 
+              [(ngModel)]="selectedCustomer()!.notes" 
+              placeholder="Escribe aquí acuerdos, llamadas o recordatorios...">
+            </textarea>
+            <button 
+              class="btn-save-notes" 
+              [disabled]="isSavingNotes()" 
+              (click)="saveNotes()">
+              {{ isSavingNotes() ? 'Guardando...' : 'Guardar Comentarios' }}
+            </button>
+          </div>
+
+          <div class="section-header-elite">
+            <div class="icon-wrapper">⏳</div>
+            <h4>Historial de Cuenta</h4>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-text">
+                <strong>Registro en la DB</strong>
+                <span>{{ selectedCustomer()?.created_at | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+            </div>
+
+            @for (log of selectedCustomer()?.activity_log; track $index) {
+              <div class="timeline-item animate-fade-in">
+                <div class="timeline-dot" style="background: #3b82f6; border-color: #3b82f6;"></div>
+                <div class="timeline-text">
+                  <strong>{{ log.action }}</strong>
+                  <span>{{ log.date | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <footer class="drawer-footer">
+          <button class="btn-report-pdf" (click)="generatePDF()">
+            <span class="icon">📄</span> Generar Reporte PDF
+          </button>
+          
+          <button class="btn-view-billing" (click)="viewInvoices(selectedCustomer()!.company)">
+            <span class="icon">📂</span> Facturación de {{ selectedCustomer()?.company }}
+          </button>
+        </footer>
+      }
+    </div>
+  </aside>
+</div>

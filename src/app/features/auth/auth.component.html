@@ -1,0 +1,66 @@
+<div class="nexus-auth-overlay">
+  <div class="auth-card-glass">
+    <div class="auth-header">
+      <div class="logo-container">
+        <img src="Loguito9.png" alt="LegaSync Logo" class="auth-logo">
+      </div>
+      
+      <p class="nexus-subtitle">{{ isLogin() ? 'IDENTIFICACIÓN REQUERIDA' : 'NUEVO REGISTRO LEGASYNC' }}</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="error-banner">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <form (submit)="handleSubmit($event)" class="auth-form">
+      <div class="input-field">
+        <label for="email-input">EMAIL CORPORATIVO</label>
+        <div class="input-wrapper">
+          <span class="input-icon" aria-hidden="true">📧</span>
+          <input 
+            type="email" 
+            id="email-input"
+            [(ngModel)]="email" 
+            name="email" 
+            placeholder="usuario@legasync.com" 
+            autocomplete="email"
+            required>
+        </div>
+      </div>
+
+      <div class="input-field">
+        <label for="password-input">CLAVE DE ACCESO</label>
+        <div class="input-wrapper">
+          <span class="input-icon" aria-hidden="true">🔑</span>
+          <input 
+            type="password" 
+            id="password-input"
+            [(ngModel)]="password" 
+            name="password" 
+            placeholder="••••••••" 
+            [attr.autocomplete]="isLogin() ? 'current-password' : 'new-password'"
+            required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-nexus-neon" [disabled]="isLoading()">
+        <span class="btn-content">
+          @if (isLoading()) {
+            <div class="spinner"></div> PROCESANDO...
+          } @else {
+            {{ isLogin() ? 'INICIAR SESIÓN' : 'FINALIZAR REGISTRO' }}
+          }
+        </span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      <p>{{ isLogin() ? '¿Es tu primera vez?' : '¿Ya tienes credenciales?' }}</p>
+      <button (click)="isLogin.set(!isLogin())" class="btn-switch">
+        {{ isLogin() ? 'SOLICITAR ACCESO' : 'VOLVER AL LOGIN' }}
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,240 @@
+<div class="dashboard-wrapper">
+  <section class="nexus-card finance-border">
+    <header class="nexus-header">
+      <div class="header-content">
+        <div class="header-icon finance-bg">
+          <span class="icon">💰</span>
+        </div>
+        <div class="header-text">
+          <h2>Gestión de Facturación LegaSync</h2>
+          <p class="subtitle">Administración de comprobantes multimoneda con Validación Fiscal</p>
+        </div>
+      </div>
+      
+      <div class="header-actions">
+        <button 
+          class="btn-batch" 
+          (click)="onRunBatch()" 
+          [disabled]="invoiceService.isProcessingBatch()"
+          [class.processing]="invoiceService.isProcessingBatch()"
+          title="Ejecutar proceso de abonos recurrentes">
+          <span class="icon">{{ invoiceService.isProcessingBatch() ? '⏳' : '⚙️' }}</span> 
+          {{ invoiceService.isProcessingBatch() ? 'Validando con Ente Fiscal...' : 'Facturación Mensual' }}
+        </button>
+
+        <button class="btn-refresh" (click)="invoiceService.getInvoices()" title="Actualizar Datos">
+          <span class="icon">↻</span> Actualizar
+        </button>
+        
+        <button 
+          class="btn-primary-nexus btn-finance" 
+          [class.btn-cancel]="showForm()" 
+          (click)="showForm.set(!showForm())">
+          {{ showForm() ? '✕ Cancelar' : '＋ Nueva Factura' }}
+        </button>
+      </div>
+    </header>
+
+    @if (invoiceService.isProcessingBatch()) {
+      <div class="batch-progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+    }
+
+    @if (showForm()) {
+      <div class="creation-panel animate-fade-in">
+        <div class="form-grid">
+          
+          <div class="input-group">
+            <label for="customer_name_input">Empresa Registrada</label>
+            <input 
+              id="customer_name_input"
+              type="text" 
+              [(ngModel)]="newInvoice.customer_name" 
+              name="customer_name"
+              #nameModel="ngModel"
+              list="customerSuggestions"
+              required
+              placeholder="Escribe para buscar cliente..."
+              class="nexus-input">
+            
+            <datalist id="customerSuggestions">
+              @for (c of customerService.customers(); track c.id) {
+                <option [value]="c.company">{{ c.name }}</option>
+              }
+            </datalist>
+          </div>
+
+          <div class="input-group">
+            <label for="base_amount_input">Monto Base</label>
+            <input 
+              id="base_amount_input"
+              type="number" 
+              [(ngModel)]="newInvoice.base_amount" 
+              name="base_amount"
+              #amountModel="ngModel"
+              required
+              min="0.01"
+              step="0.01"
+              placeholder="0.00"
+              class="nexus-input">
+          </div>
+
+          <div class="input-group">
+            <label for="currency_code_select">Moneda de Facturación</label>
+            <select 
+              id="currency_code_select"
+              [(ngModel)]="newInvoice.currency_code" 
+              name="currency_code" 
+              class="nexus-select">
+              @for (curr of currencies; track curr.code) {
+                <option [value]="curr.code">
+                  {{ curr.flag }} {{ curr.code }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="input-group">
+            <label for="status_select">Estado Inicial</label>
+            <select 
+              id="status_select"
+              [(ngModel)]="newInvoice.status" 
+              name="status" 
+              class="nexus-select">
+              <option value="pending">⏳ Pendiente</option>
+              <option value="paid">✅ Pagado</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions-container">
+          <button 
+            class="btn-save" 
+            (click)="saveInvoice()"
+            [disabled]="nameModel.invalid || amountModel.invalid">
+            💾 Guardar Factura en {{ newInvoice.currency_code }}
+          </button>
+        </div>
+
+        <p class="form-help">💡 Tip: El proceso de facturación mensual genera facturas validadas fiscalmente de forma automática.</p>
+      </div>
+    }
+
+    <div class="table-section">
+      <div class="section-header-flex">
+        <div class="section-title">
+          <h3>Registros Financieros</h3>
+          @if (invoiceService.currentFilter()) {
+            <span class="filter-tag">
+              Filtrado: <strong>{{ invoiceService.currentFilter() }}</strong>
+              <button (click)="invoiceService.clearFilters()" class="btn-clear" title="Quitar filtro">✕</button>
+            </span>
+          }
+        </div>
+        <span class="badge-count">{{ invoiceService.invoices().length }} Facturas Totales</span>
+      </div>
+      
+      @if (invoiceService.isLoading()) {
+        <div class="nexus-loader">
+          <div class="spinner finance"></div>
+          <p>Consultando registros en la nube...</p>
+        </div>
+      } @else {
+        <div class="responsive-table-container">
+          <table class="nexus-table">
+            <thead>
+              <tr>
+                <th>Cliente / Empresa</th>
+                <th>Monto Base</th>
+                <th>Estado Fiscal</th>
+                <th>ID Fiscal (CAE/UUID)</th>
+                <th>Estado</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (inv of paginatedInvoices(); track inv.id) {
+                <tr class="animate-row" [class.automated-row]="inv.isAuto">
+                  <td>
+                    <div class="customer-info">
+                      <span class="font-bold">{{ inv.customer_name }}</span>
+                      @if (inv.isAuto) { <span class="badge-auto">Auto</span> }
+                    </div>
+                  </td>
+                  
+                  <td class="amount-cell">
+                    <span class="currency-tag">{{ inv.currency_code || 'USD' }}</span>
+                    <strong>{{ inv.base_amount | number:'1.2-2' }}</strong>
+                  </td>
+                  
+                  <td>
+                    <span class="fiscal-status" [ngClass]="inv.fiscal_id ? 'validated' : 'pending'">
+                      {{ inv.fiscal_id ? '🛡️ Validado' : '⏳ Pendiente' }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <code class="fiscal-id">{{ inv.fiscal_id || 'N/A' }}</code>
+                  </td>
+                  
+                  <td>
+                    <span class="badge-pill" [ngClass]="inv.status.toLowerCase()">
+                      {{ inv.status === 'paid' ? '● Pagado' : '○ Pendiente' }}
+                    </span>
+                  </td>
+                  
+                  <td class="text-center">
+                    <button class="btn-delete-nexus" (click)="deleteInvoice(inv.id)" title="Eliminar registro">
+                      <span class="icon">🗑️</span>
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="empty-state">
+                    No se encontraron movimientos financieros registrados.
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (invoiceService.invoices().length > itemsPerPage) {
+          <div class="pagination-controls">
+            <button 
+              class="btn-page" 
+              [disabled]="currentPage() === 1"
+              (click)="setPage(currentPage() - 1)">
+              &lsaquo;
+            </button>
+
+            <span class="page-info">
+              Página <strong>{{ currentPage() }}</strong> de {{ totalPages() }}
+            </span>
+
+            <button 
+              class="btn-page" 
+              [disabled]="currentPage() >= totalPages()"
+              (click)="setPage(currentPage() + 1)">
+              &rsaquo;
+            </button>
+          </div>
+        }
+      }
+    </div>
+
+    <footer class="nexus-footer">
+      <div class="status-group">
+        <span class="dot" [class.active]="!invoiceService.isLoading() && !invoiceService.isProcessingBatch()"></span>
+        Estado: <span class="highlight">
+          {{ invoiceService.isProcessingBatch() ? 'Procesando Lote...' : 'Sincronizado con Ente Fiscal' }}
+        </span>
+      </div>
+      <div class="info-group">
+        Infraestructura: <span class="db-link">Cloud PostgreSQL</span> | Core: 2026.1
+      </div>
+    </footer>
+  </section>
+</div>

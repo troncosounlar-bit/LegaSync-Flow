@@ -1,0 +1,114 @@
+<div class="nexus-subscription-wrapper" [class.dashboard-mode]="!customerId()">
+  <div class="subscription-card-nexus">
+    
+    <div class="internal-header">
+      <div class="title-group">
+        <span class="card-title">{{ customerId() ? 'GESTIÓN DE ABONOS' : 'MONITOR DE INGRESOS RECURRENTES' }}</span>
+        @if (!customerId()) {
+          <span class="badge-fase">Fase 5 Activa</span>
+        }
+      </div>
+      <div class="card-neto">
+        <span class="neto-label">Neto:</span>
+        <span class="amount-green">${{ totalMonthly() | number:'1.2-2' }}</span>
+        <span class="period">/mes</span>
+      </div>
+    </div>
+
+    @if (!customerId()) {
+      <div class="nexus-metrics-grid">
+        <div class="metric-item">
+          <span class="m-label">PROYECCIÓN ANUAL</span>
+          <span class="m-value">${{ (totalMonthly() * 12) | number:'1.2-2' }}</span>
+        </div>
+        <div class="metric-item">
+          <span class="m-label">EFICIENCIA AUTO</span>
+          <span class="m-value">98.2%</span>
+        </div>
+        <div class="metric-item">
+          <span class="m-label">PRÓXIMO CICLO</span>
+          <span class="m-value">01 MAR</span>
+        </div>
+      </div>
+    }
+
+    @if (customerId()) {
+      <div class="expense-form-pro">
+        <div class="form-row">
+          <div class="input-group flex-2">
+            <label>NOMBRE DEL SERVICIO</label>
+            <input type="text" 
+                   [(ngModel)]="newSub.service_name" 
+                   placeholder="Ej: Servidor" 
+                   class="nexus-input-dark">
+          </div>
+          <div class="input-group flex-1">
+            <label>MONTO $</label>
+            <input type="number" 
+                   [(ngModel)]="newSub.amount" 
+                   placeholder="0.00" 
+                   class="nexus-input-dark">
+          </div>
+        </div>
+        
+        <div class="form-row mt-4">
+          <div class="input-group w-date"> 
+            <label>PRÓXIMO COBRO</label>
+            <input type="date" 
+                   [(ngModel)]="newSub.next_billing_date" 
+                   class="nexus-input-dark">
+          </div>
+          <div class="input-group flex-1">
+            <label>CICLO</label>
+            <select [(ngModel)]="newSub.interval" class="nexus-input-dark">
+              <option value="monthly">Mensual</option>
+              <option value="yearly">Anual</option>
+            </select>
+          </div>
+          
+          <button class="btn-add-nexus" 
+                  (click)="saveSubscription()" 
+                  [disabled]="!newSub.service_name || !newSub.amount || isLoading()">
+            <span>{{ isLoading() ? '...' : '+' }}</span>
+          </button>
+        </div>
+      </div>
+      <div class="divider"></div>
+    }
+
+    <div class="mini-list" [class.scrollable]="!customerId()">
+      <div class="list-header" 
+           [style.display]="!customerId() ? 'flex' : null"
+           [style.justify-content]="!customerId() ? 'space-between' : null"
+           [style.margin-bottom]="!customerId() ? '10px' : null"
+           [style.font-size]="!customerId() ? '0.7rem' : null"
+           [style.color]="!customerId() ? '#64748b' : null"
+           [style.font-weight]="!customerId() ? '800' : null">
+        <span>{{ customerId() ? 'SUSCRIPCIONES DEL CLIENTE' : 'ULTIMOS MOVIMIENTOS AUTOMÁTICOS' }}</span>
+      </div>
+
+      @for (sub of subscriptions(); track sub.id) {
+        <div class="item-pro">
+          <div class="info-container">
+            <span class="name">{{ sub.service_name }}</span>
+            <span class="meta">
+              {{ sub.interval === 'monthly' ? 'Mensual' : 'Anual' }} • 
+              {{ sub.next_billing_date | date:'dd MMM' }}
+            </span>
+          </div>
+          
+          <div class="actions">
+            <span class="amount-item">${{ sub.amount | number:'1.2-2' }}</span>
+            <button class="btn-delete" (click)="deleteSub(sub.id!)" title="Eliminar abono">
+              🗑️
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="empty-msg">
+          {{ isLoading() ? 'Cargando datos...' : 'No hay abonos configurados en el sistema.' }}
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+@if (!isAuthPage()) {
+<div class="crm-container">
+  <aside class="sidebar-wrapper">
+    <nav class="nexus-sidebar">
+      
+      <div class="sidebar-header">
+        <div class="logo-container">
+          <img src="Loguito9.png" alt="LegaSync Flow" class="main-logo">
+        </div>
+      </div>
+
+      <ul class="nav-links">
+        <li class="nav-item" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+          <a routerLink="/dashboard">
+            <span class="icon">📊</span>
+            <span class="label">Dashboard</span>
+          </a>
+        </li>
+
+        <li class="nav-item" routerLinkActive="active">
+          <a routerLink="/customers">
+            <span class="icon">👥</span>
+            <span class="label">Clientes</span>
+          </a>
+        </li>
+
+        <li class="nav-item" routerLinkActive="active">
+          <a routerLink="/invoices">
+            <span class="icon">📄</span>
+            <span class="label">Facturación</span>
+          </a>
+        </li>
+      </ul>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" (click)="onLogout()">
+          <span class="icon">🚪</span>
+          <span class="label">Cerrar Sesión</span>
+        </button>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="content-area">
+    <header class="top-bar">
+      <div class="breadcrumb">
+        LegaSync Flow / 
+        <span class="active-route">{{ currentSection() }}</span>
+      </div>
+    </header>
+    
+    <section class="view-container">
+      <router-outlet></router-outlet>
+    </section>
+  </main>
+</div>
+} @else {
+  <router-outlet></router-outlet>
+}

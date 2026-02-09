@@ -1,0 +1,359 @@
+<div class="dashboard-container animate-fade-in">
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="icon revenue">💰</div>
+      <div class="data">
+        <span class="label">Ingresos Totales ({{ selectedCurrency() }})</span>
+        <h3>{{ selectedCurrency() }} {{ totalRevenue() | number:'1.2-2' }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="icon pending">⏳</div>
+      <div class="data">
+        <span class="label">Pendiente ({{ selectedCurrency() }})</span>
+        <h3 class="text-warning">{{ selectedCurrency() }} {{ totalPending() | number:'1.2-2' }}</h3>
+      </div>
+    </div>
+
+    <div class="stat-card">
+      <div class="icon clients">👥</div>
+      <div class="data">
+        <span class="label">Clientes en Directorio</span>
+        <h3>{{ totalCustomersCount() }}</h3>
+      </div>
+    </div>
+  </div>
+
+  @if (riskAmount() > 0 || health() < 100) {
+    <div class="intel-alerts-row">
+      @if (riskAmount() > 0) {
+        <div class="intel-card glass-alert warning">
+          <div class="icon">⚠️</div>
+          <div class="content">
+            <span class="alert-label">Riesgo de Capital Detectado</span>
+            <span class="alert-value">{{ riskAmount() | currency:selectedCurrency() }}</span>
+            <p class="description">Facturas con más de 15 días de retraso detectadas en el sistema.</p>
+          </div>
+          <button 
+            class="action-btn" 
+            [class.active]="isRiskFilterActive()"
+            (click)="toggleRiskFilter()">
+            {{ isRiskFilterActive() ? 'Ver Todas' : 'Gestionar' }}
+          </button>
+        </div>
+      }
+
+      <div class="intel-card glass-alert info">
+        <div class="icon">📈</div>
+        <div class="content">
+          <span class="alert-label">Eficiencia de Cobro</span>
+          <span class="alert-value">{{ health() }}%</span>
+          <p class="description">Tu salud financiera actual basada en el ratio pagado/pendiente.</p>
+        </div>
+      </div>
+
+      <div class="intel-card glass-alert purple">
+        <div class="icon">🤖</div>
+        <div class="content">
+          <span class="alert-label">Nivel de Automatización</span>
+          <span class="alert-value">{{ automation() }}%</span>
+          <p class="description">Porcentaje de procesos gestionados por la lógica de Fase 5.</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="main-grid">
+    
+    <div class="chart-container card">
+      <div class="card-header">
+        <h4>Análisis de Pagos e Inteligencia de Negocio</h4>
+        <div class="header-actions">
+          <label for="currency-selector" style="display: none;">Seleccionar Divisa</label>
+          <select 
+            id="currency-selector"
+            name="currency_filter"
+            class="currency-select" 
+            [ngModel]="selectedCurrency()" 
+            (change)="onCurrencyChange($event)">
+            @for (c of currencies; track c.code) {
+              <option [value]="c.code">{{ c.flag }} {{ c.code }}</option>
+            }
+          </select>
+          <span class="badge-live">En Tiempo Real</span>
+        </div>
+      </div>
+      
+      <div class="charts-inner-grid">
+        <div class="chart-box main-bar">
+          <p class="chart-label">Flujo Mensual ({{ selectedCurrency() }})</p>
+          <div class="canvas-wrapper">
+             <canvas id="cashFlowChart"></canvas>
+             @if (!filteredInvoices().length) {
+               <div class="placeholder-overlay">
+                  <p>Sin datos en {{ selectedCurrency() }}</p>
+               </div>
+             }
+          </div>
+        </div>
+
+        <div class="chart-box customer-distribution">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <p class="chart-label">Distribución de Ingresos</p>
+            <span class="info-tag">Global USD</span>
+          </div>
+          <div class="canvas-wrapper">
+            <canvas id="customerChart"></canvas>
+          </div>
+          <p class="chart-disclaimer">
+            * Montos unificados a USD para comparar el peso real de cada cliente.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-accordion-container">
+      
+      <div class="card accordion-card legacy-integration" [class.is-open]="isFiscalOpen()">
+        <div class="card-header clickable" (click)="isFiscalOpen.set(!isFiscalOpen())">
+          <div class="title-with-badge">
+            <h4>Motor de Cálculo Fiscal</h4>
+            <span class="status-dot">Sincronizado</span>
+          </div>
+          <span class="chevron" [class.rotate]="isFiscalOpen()">▼</span>
+        </div>
+
+        <div class="accordion-content">
+          <p class="card-subtitleDos">Simulador de impuestos y validación dinámica</p>
+
+          <div class="input-nexus-grid">
+            <div class="input-group">
+              <label for="amount-input">Monto Base ({{ selectedCurrency() }})</label>
+              <div class="input-container">
+                <input 
+                  type="number" 
+                  id="amount-input"
+                  name="base_amount_sim"
+                  [value]="invoiceService.amount()" 
+                  (input)="onManualAmountChange($event)"
+                  placeholder="0.00"
+                  class="nexus-input">
+              </div>
+            </div>
+
+            <div class="input-group tax-field">
+              <label for="tax-percentage-input">IVA (%)</label>
+              <div class="input-container">
+                <input 
+                  type="number" 
+                  id="tax-percentage-input"
+                  name="tax_percentage_sim"
+                  [value]="taxPercentage()" 
+                  (input)="onTaxChange($event)"
+                  placeholder="21"
+                  class="nexus-input tax-input">
+                <span class="percentage-symbol">%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="legacy-display">
+            <div class="legacy-item">
+              <span>Subtotal:</span>
+              <strong>{{ selectedCurrency() }} {{ invoiceService.amount() | number:'1.2-2' }}</strong>
+            </div>
+
+            <div class="legacy-item tax-detail">
+              <span>Impuesto aplicado ({{ taxPercentage() }}%):</span>
+              <span style="color: #3b82f6; font-weight: 600;">
+                + {{ selectedCurrency() }} {{ Math.abs(invoiceService.amount() * (taxPercentage() / 100)) | number:'1.2-2' }}
+              </span>
+            </div>
+            
+            <div class="legacy-item highlight">
+              <span>Total con Impuestos:</span>
+              <strong style="color: #ef4444; font-size: 1.4rem; font-weight: 800;">
+                {{ selectedCurrency() }} {{ legacyCalculatedTotal() | number:'1.2-2' }}
+              </strong>
+            </div>
+          </div>
+
+          <button class="btn-sync-db" (click)="syncWithDB()" title="Importar total desde PostgreSQL">
+            <span class="icon">🔗</span> Usar Total DB ({{ selectedCurrency() }} {{ totalRevenue() | number:'1.2-2' }})
+          </button>
+        </div>
+      </div>
+
+      <div class="card accordion-card" [class.is-open]="isMarketOpen()">
+        <div class="card-header clickable" (click)="isMarketOpen.set(!isMarketOpen())">
+          <div class="title-with-badge">
+            <h4><span class="icon">🇦🇷</span> Mercado Hoy</h4>
+            <span class="status-dot">En vivo</span>
+          </div>
+          <span class="chevron" [class.rotate]="isMarketOpen()">▼</span>
+        </div>
+        
+        <div class="accordion-content">
+          <p class="card-subtitle">Cotizaciones oficiales y paralelas en tiempo real</p>
+
+          @if (exchangeService.loading()) {
+            <div class="market-loading">Cargando cotizaciones...</div>
+          } @else {
+            <div class="market-pro-grid">
+              @for (rate of exchangeService.rates(); track rate.casa) {
+                <div class="market-row">
+                  <span class="market-name">{{ rate.nombre }}</span>
+                  <div class="market-prices">
+                    @if (rate.compra) {
+                      <span class="price-box">Compra: <strong>${{ rate.compra | number:'1.0-0' }}</strong></span>
+                    }
+                    <span class="price-box sell">Venta: <strong>${{ rate.venta | number:'1.0-0' }}</strong></span>
+                  </div>
+                </div>
+              }
+            </div>
+            <div class="sync-footer">Sincronizado con DolarApi</div>
+          }
+        </div>
+      </div>
+
+      <div class="card accordion-card automation-engine" [class.is-open]="isAutoOpen()">
+        <div class="card-header clickable" (click)="isAutoOpen.set(!isAutoOpen())">
+          <div class="title-with-badge">
+            <h4><span class="icon">⚡</span> Suscripciones LegaSync</h4>
+            <span class="status-dot purple">Fase 5</span>
+          </div>
+          <span class="chevron" [class.rotate]="isAutoOpen()">▼</span>
+        </div>
+        
+        <div class="accordion-content">
+          <app-subscription-manager></app-subscription-manager>
+        </div>
+      </div>
+
+      <div class="card accordion-card activity-log-card" [class.is-open]="isActivityOpen()">
+        <div class="card-header clickable" (click)="isActivityOpen.set(!isActivityOpen())">
+          <div class="title-with-badge">
+            <h4><span class="icon">🔔</span> Actividad Reciente</h4>
+            <span class="status-dot">Live</span>
+          </div>
+          <span class="chevron" [class.rotate]="isActivityOpen()">▼</span>
+        </div>
+
+        <div class="accordion-content">
+          <div class="activity-body">
+            <div class="activity-feed">
+              @for (log of logService.logs(); track log.id) {
+                <div class="feed-item" [className]="'feed-item ' + log.type">
+                  <div class="feed-icon">{{ log.icon }}</div>
+                  <div class="feed-content">
+                    <p [innerHTML]="log.message"></p>
+                    <span class="feed-time">{{ log.created_at | date:'HH:mm' }} hs</span>
+                  </div>
+                </div>
+              } @empty {
+                <div class="empty-state-mini">
+                  <p>No se detectó actividad reciente en la DB.</p>
+                </div>
+              }
+            </div>
+            
+            <button class="btn-refresh-mini" (click)="$event.stopPropagation(); logService.getRecentLogs()">
+              <span class="icon">↻</span> Sincronizar Logs
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="table-card card">
+    <div class="card-header">
+      <h4>Historial Reciente (Filtrado por {{ selectedCurrency() }})</h4>
+      <div class="header-actions">
+        <button class="btn-refresh" (click)="refreshData()" title="Actualizar datos">
+          <span class="icon">↻</span> Actualizar
+        </button>
+      </div>
+    </div>
+
+    @if (invoiceService.isLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Consultando base de datos...</p>
+      </div>
+    } @else {
+      
+      @if (isRiskFilterActive()) {
+        <div class="filter-badge">
+            <div class="filter-text">
+              🎯 <span>Mostrando solo facturas con riesgo de cobro (+15 días de mora)</span>
+            </div>
+            <span class="close-filter" (click)="toggleRiskFilter()">
+              Quitar filtro ✖
+            </span>
+          </div>
+      }
+
+      <div class="table-responsive">
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Monto Base</th>
+              <th>Divisa</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of paginatedInvoices(); track item.id) {
+              <tr class="animate-row">
+                <td><strong>{{ item.customer_name }}</strong></td>
+                <td>{{ item.base_amount | number:'1.2-2' }}</td>
+                <td><span style="font-weight: 700; color: #64748b;">{{ item.currency_code }}</span></td>
+                <td>
+                  <span class="badge" [ngClass]="item.status.toLowerCase()">
+                    {{ item.status | uppercase }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="empty-state">No hay registros financieros que coincidan con este filtro.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (filteredInvoices().length > itemsPerPage) {
+        <div class="dashboard-pagination">
+          <button 
+            class="btn-nav" 
+            [disabled]="currentPage() === 1"
+            (click)="setPage(currentPage() - 1)">
+            &lsaquo;
+          </button>
+
+          <span class="page-indicator">
+            {{ currentPage() }} / {{ totalPages() }}
+          </span>
+
+          <button 
+            class="btn-nav" 
+            [disabled]="currentPage() >= totalPages()"
+            (click)="setPage(currentPage() + 1)">
+            &rsaquo;
+          </button>
+        </div>
+      }
+    }
+  </div>
+
+  <footer>
+    <p>Infraestructura: <span class="status-online">Cloud PostgreSQL</span> | Versión: 2026.1</p>
+  </footer>
+</div>

@@ -1,0 +1,726 @@
+$primary: #3b82f6; 
+$secondary: #6366f1; 
+$success: #10b981;
+$warning: #f59e0b;
+$danger: #ef4444;
+$bg-main: #f8fafc; 
+$text-dark: #0f172a; 
+$text-muted: #64748b;
+$border: #e2e8f0;
+
+.dashboard-wrapper {
+  background-color: $bg-main;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: calc(100vh - 80px); 
+  padding: 40px 20px;
+  font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+
+  .nexus-card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 1350px; 
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.04);
+    border: 1px solid $border;
+    overflow: hidden;
+
+    .nexus-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2.5rem;
+      border-bottom: 1px solid $border;
+      background: linear-gradient(to right, #ffffff, #f8fafc);
+
+      .header-content {
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        .header-icon {
+          background: rgba($primary, 0.1);
+          color: $primary;
+          width: 54px; height: 54px;
+          border-radius: 16px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 1.6rem;
+        }
+        .header-text {
+          h2 { color: $text-dark; margin: 0; font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+          .subtitle { color: $primary; font-size: 0.95rem; margin-top: 2px; font-weight: 600; } 
+        }
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
+        .view-toggle-group {
+          background: #f1f5f9;
+          padding: 5px;
+          border-radius: 12px;
+          display: flex;
+          gap: 2px;
+
+          .btn-toggle {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 9px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: $text-muted;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            &.active {
+              background: white;
+              color: $primary;
+              box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            }
+          }
+        }
+
+        .btn-refresh-text {
+          background: white;
+          border: 1px solid $border;
+          padding: 8px 16px;
+          border-radius: 12px;
+          cursor: pointer;
+          color: $text-muted;
+          font-weight: 700;
+          font-size: 0.85rem;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.2s;
+          
+          &:hover {
+            color: $primary;
+            border-color: $primary;
+            background: rgba($primary, 0.05);
+          }
+        }
+      }
+    }
+
+    .creation-panel {
+      background: #f8fafc;
+      border: 1px solid $border;
+      border-radius: 18px;
+      padding: 2rem;
+      margin: 1.5rem 2.5rem;
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.5rem;
+        @media (max-width: 900px) { grid-template-columns: repeat(2, 1fr); }
+      }
+
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        label { font-size: 0.85rem; font-weight: 700; color: $text-dark; }
+        .nexus-input {
+          height: 45px;
+          padding: 0 12px;
+          border: 1px solid #cbd5e1;
+          border-radius: 10px;
+          background: white;
+          font-family: inherit;
+          transition: all 0.2s;
+          &:focus { outline: none; border-color: $primary; box-shadow: 0 0 0 3px rgba($primary, 0.1); }
+        }
+      }
+
+      .form-actions {
+        margin-top: 2.5rem;
+        display: flex;
+        justify-content: center;
+
+        .btn-register {
+          background: $primary;
+          color: white;
+          border: none;
+          padding: 14px 32px;
+          border-radius: 14px;
+          font-weight: 800;
+          font-size: 0.95rem;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 10px 20px rgba($primary, 0.15);
+
+          &:hover:not(:disabled) {
+            background: darken($primary, 8%);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba($primary, 0.25);
+          }
+
+          &:disabled {
+            background: #cbd5e1;
+            color: #94a3b8;
+            cursor: not-allowed;
+            opacity: 0.7;
+            box-shadow: none;
+          }
+        }
+      }
+    }
+
+    .kanban-board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
+      padding: 2rem 2.5rem;
+      background: #fafbfc;
+      min-height: 600px;
+      overflow-x: auto;
+
+      .kanban-column {
+        background: rgba(#f1f5f9, 0.5);
+        border-radius: 20px;
+        padding: 1.2rem;
+        border: 1px solid $border;
+        display: flex;
+        flex-direction: column;
+
+        .column-header {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 1.5rem;
+          .status-indicator {
+            width: 10px; height: 10px; border-radius: 50%;
+            &[data-status="comprador"] { background: $primary; }
+            &[data-status="Negociación"] { background: $warning; }
+            &[data-status="Ganados"] { background: $success; }
+            &[data-status="Perdidos"] { background: $danger; }
+          }
+          h3 { font-size: 0.85rem; font-weight: 800; color: #475569; margin: 0; text-transform: uppercase; flex: 1; }
+          .count-badge { background: white; color: $text-muted; font-size: 0.75rem; padding: 2px 8px; border-radius: 10px; font-weight: 700; border: 1px solid $border; }
+        }
+
+        .kanban-list {
+          min-height: 450px; 
+          flex-grow: 1;
+        }
+      }
+    }
+
+    .kanban-card {
+      background: white;
+      border-radius: 16px;
+      padding: 1.2rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+      border: 1px solid #f1f5f9;
+      cursor: grab;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &:hover { transform: translateY(-4px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); border-color: $primary; }
+      &:active { cursor: grabbing; }
+
+      .card-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        h4 { margin: 0; font-size: 1rem; color: $text-dark; font-weight: 700; }
+        .btn-mini-delete {
+          background: transparent; border: none; cursor: pointer; font-size: 0.95rem; opacity: 0.3;
+          &:hover { opacity: 1; transform: scale(1.2); }
+        }
+      }
+
+      .card-priority-line {
+        width: 35px; height: 5px; border-radius: 10px; margin-bottom: 12px;
+        &[data-priority="high"] { background: $danger; }
+        &[data-priority="medium"] { background: $warning; }
+        &[data-priority="low"] { background: $primary; }
+      }
+
+      .company-name { color: $text-muted; font-size: 0.85rem; font-weight: 500; }
+
+      .card-meta {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9;
+        .deal-tag { font-weight: 800; color: $success; font-size: 0.95rem; }
+      }
+    }
+
+    .column-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      border: 2px dashed #cbd5e1;
+      border-radius: 16px;
+      color: #94a3b8;
+      text-align: center;
+      .icon { font-size: 1.5rem; margin-bottom: 5px; }
+      p { margin: 0; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
+    }
+
+    .table-section {
+      padding: 2rem 2.5rem;
+
+      .table-header-nexus {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding: 0 5px;
+
+        .table-title {
+          font-size: 1.25rem;
+          font-weight: 800;
+          color: $text-dark;
+          margin: 0;
+          letter-spacing: -0.01em;
+        }
+
+        .records-badge-nexus {
+          background: rgba($primary, 0.08); 
+          color: $primary;                 
+          font-weight: 800;
+          font-size: 0.75rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          padding: 6px 16px;
+          border-radius: 99px;
+          border: 1px solid rgba($primary, 0.2);
+          box-shadow: 0 2px 10px rgba($primary, 0.05);
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: $primary;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba($primary, 0.2);
+          }
+        }
+      }
+
+      .nexus-table {
+        width: 100%; border-collapse: collapse;
+        
+        tr { 
+          border-bottom: 1px solid rgba($border, 0.5);
+          transition: all 0.2s;
+          &:hover { background: rgba($primary, 0.02); } 
+        }
+
+        th { 
+          background: #f8fafc; 
+          padding: 1.2rem 1rem; 
+          text-align: left; 
+          font-size: 0.85rem; 
+          color: $text-dark; 
+          font-weight: 800; 
+          border-bottom: 2px solid $border; 
+        }
+
+        td { 
+          padding: 1.2rem 1rem; 
+          font-size: 0.9rem; 
+          color: $text-muted;
+        }
+
+        .status-pill {
+          padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 700;
+          &[data-status="comprador"] { background: rgba($primary, 0.1); color: $primary; }
+          &[data-status="Negociación"] { background: rgba($warning, 0.1); color: $warning; }
+          &[data-status="Ganados"] { background: rgba($success, 0.1); color: $success; }
+          &[data-status="Perdidos"] { background: rgba($danger, 0.1); color: $danger; }
+        }
+
+        .actions-cell {
+          .btn-table-action-view, .btn-table-action-delete {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .btn-table-action-view {
+            &:hover { background: rgba($primary, 0.1); transform: scale(1.1); }
+          }
+
+          .btn-table-action-delete {
+            &:hover { background: rgba($danger, 0.1); transform: scale(1.1); }
+          }
+        }
+      }
+    }
+
+    .nexus-footer {
+      background: #f8fafc; padding: 1.2rem 2.5rem; border-top: 1px solid $border;
+      display: flex; justify-content: space-between; font-size: 0.8rem; color: $text-muted;
+      .dot.pulse { height: 8px; width: 8px; background: $success; border-radius: 50%; display: inline-block; margin-right: 5px; animation: pulse 2s infinite; }
+      @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba($success, 0.4); } 70% { box-shadow: 0 0 0 10px rgba($success, 0); } 100% { box-shadow: 0 0 0 0 rgba($success, 0); } }
+    }
+  }
+
+  .btn-primary-nexus {
+    background: $primary; color: white; border: none; padding: 10px 22px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.3s;
+    &:hover { background: darken($primary, 5%); transform: translateY(-1px); }
+    &.btn-cancel { background: #475569 !important; }
+  }
+
+  .btn-action-nexus {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #ffffff; border: 1px solid $border; padding: 6px 14px; border-radius: 10px;
+    color: $text-dark; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    &:hover { border-color: $primary; color: $primary; transform: translateY(-1px); }
+  }
+}
+
+
+.nexus-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  visibility: hidden;
+  pointer-events: none;
+
+  &.open {
+    visibility: visible;
+    pointer-events: auto;
+    .drawer-overlay { opacity: 1; }
+    .drawer-content { transform: translateX(0); }
+  }
+
+  .drawer-overlay {
+    position: absolute; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
+    opacity: 0; transition: opacity 0.3s;
+  }
+
+  .drawer-content {
+    position: absolute;
+    top: 0; right: 0;
+    width: 100%;
+    max-width: 480px; 
+    height: 100%;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: -10px 0 50px rgba(0,0,0,0.15);
+  }
+
+  .drawer-header {
+    padding: 2rem;
+    border-bottom: 1px solid $border;
+    flex-shrink: 0;
+
+    .status-badge {
+      font-size: 0.7rem; font-weight: 800; padding: 4px 12px; border-radius: 20px; margin-bottom: 12px; display: inline-block;
+      &[data-status="comprador"] { color: $primary; background: rgba($primary, 0.1); }
+      &[data-status="Negociación"] { color: $warning; background: rgba($warning, 0.1); }
+      &[data-status="Ganados"] { color: $success; background: rgba($success, 0.1); }
+      &[data-status="Perdidos"] { color: $danger; background: rgba($danger, 0.1); }
+    }
+    h3 { margin: 0; font-size: 1.5rem; font-weight: 800; color: $text-dark; }
+    .btn-close { 
+      position: absolute; top: 2rem; right: 2rem;
+      background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      &:hover { background: #e2e8f0; }
+    }
+  }
+
+  .drawer-body-scrollable {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    
+    &::-webkit-scrollbar { width: 6px; }
+    &::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+
+    .notes-container {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 0 5px; 
+    }
+
+   
+    .nexus-notes-area {
+      width: 100% !important; 
+      max-width: 100%;        
+      box-sizing: border-box; 
+      min-height: 120px;
+      background: #ffffff;
+      border: 1px solid #3b82f6; 
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 0.9rem;
+      resize: vertical;
+      outline: none;
+      transition: all 0.2s ease;
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      }
+    }
+
+    .section-header-elite {
+      display: flex; align-items: center; gap: 12px; margin: 1.5rem 0 1rem 0;
+      padding-bottom: 8px; border-bottom: 1px solid rgba($border, 0.6);
+      .icon-wrapper {
+        width: 50px; height: 32px; background: rgba($primary, 0.1);
+        color: $primary; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem;
+      }
+      h4 { margin: 0; font-size: 0.8rem; font-weight: 800; color: $text-dark; text-transform: uppercase; letter-spacing: 0.05em; }
+    }
+
+    .info-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-bottom: 1rem;
+      .info-item {
+        label { display: block; font-size: 0.75rem; color: $text-muted; font-weight: 700; margin-bottom: 4px; }
+        span { color: $text-dark; font-weight: 600; font-size: 0.95rem; }
+      }
+    }
+
+    .nexus-balance-container {
+      background: #0f172a; border-radius: 20px; padding: 1.5rem; margin: 1rem 0;
+      border: 1px solid #1e293b; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+
+      .balance-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.2rem;
+
+        h3 {
+          font-size: 0.7rem;
+          color: #94a3b8;
+          text-transform: uppercase;
+          font-weight: 800;
+          margin: 0;
+          letter-spacing: 0.05em;
+        }
+
+        .card-neto {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+
+          .neto-label {
+            color: #94a3b8;
+            font-size: 0.85rem;
+            font-weight: 700;
+          }
+
+          .amount-dynamic {
+            color: #10b981; 
+            font-size: 1.2rem;
+            font-weight: 800;
+            font-family: 'Inter', sans-serif; 
+            transition: color 0.3s ease;
+          }
+
+
+          &.negative {
+            .amount-dynamic {
+              color: #ef4444; 
+            }
+          }
+        }
+      }
+
+      .expense-form-pro {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 12px;
+          &.mt-2 { 
+            grid-template-columns: 1.5fr 0.8fr 60px;
+            align-items: flex-end;
+          }
+        }
+
+        .input-wrapper {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 800;
+            letter-spacing: 0.03em;
+            margin-left: 4px;
+          }
+        }
+
+        .nexus-input-dark {
+          background: #1e293b; border: 1px solid #334155; color: white; 
+          padding: 6px 10px; border-radius: 8px; font-size: 0.8rem; height: 36px;
+          transition: all 0.2s;
+          &::placeholder { color: #475569; font-size: 0.75rem; }
+          &:focus { border-color: $primary; outline: none; background: #262f3f; box-shadow: 0 0 0 2px rgba($primary, 0.2); }
+          &[type="date"] { color-scheme: dark; font-size: 0.7rem; }
+        }
+
+        .btn-add-nexus {
+          background: #3b82f6;
+          color: white;
+          border: none;
+          border-radius: 10px;
+          min-width: 52px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 1.5rem;
+          transition: all 0.2s;
+          box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+
+          &:hover:not(:disabled) {
+            background: #2563eb;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.6);
+            transform: translateY(-2px);
+          }
+
+          &:disabled { opacity: 0.2; cursor: not-allowed; box-shadow: none; }
+        }
+      }
+
+      .mini-expense-list {
+        max-height: 250px; overflow-y: auto; margin-top: 1.5rem; padding-right: 5px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 10px;
+
+        .expense-item-pro {
+          display: flex; justify-content: space-between; align-items: center; padding: 10px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+          .expense-info {
+            .desc { color: #cbd5e1; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; display: block; }
+            .vendor-date { color: #64748b; font-size: 0.7rem; }
+          }
+          .expense-actions {
+            display: flex; align-items: center; gap: 10px;
+            .price { color: #fca5a5; font-weight: 800; font-family: monospace; }
+            .btn-del-exp { background: none; border: none; color: #475569; cursor: pointer; font-size: 1.1rem; &:hover { color: $danger; } }
+          }
+        }
+        .empty-msg {
+          text-align: center;
+          color: rgb(255, 255, 255); 
+          font-size: 0.85rem;
+          font-weight: 500;
+          font-style: italic;
+          padding: 2rem 0;
+          letter-spacing: 0.3px;  
+        }
+      }
+    }
+
+    .nexus-textarea {
+      width: 100%; min-height: 100px; border: 1px solid $border; border-radius: 16px; 
+      padding: 1rem; background: #f8fafc; font-family: inherit; font-size: 0.9rem;
+      resize: none; transition: all 0.2s;
+      &:focus { border-color: $primary; outline: none; background: white; }
+    }
+
+    .btn-save-notes {
+      width: 100%; background: $text-dark; color: white; border: none; padding: 12px; 
+      border-radius: 12px; margin-top: 10px; cursor: pointer; font-weight: 800;
+      &:hover { background: #000; transform: translateY(-1px); }
+    }
+
+    .timeline {
+      margin-top: 0.5rem; padding-left: 5px;
+      .timeline-item {
+        display: flex; gap: 15px; padding-bottom: 20px; position: relative;
+        &::before { content: ''; position: absolute; left: 5px; top: 20px; bottom: 0; width: 2px; background: #f1f5f9; }
+        &:last-child::before { display: none; }
+        .timeline-dot { width: 12px; height: 12px; background: white; border: 3px solid $primary; border-radius: 50%; z-index: 1; margin-top: 5px; }
+        .timeline-text {
+          strong { display: block; font-size: 0.85rem; color: $text-dark; }
+          span { font-size: 0.75rem; color: $text-muted; }
+        }
+      }
+    }
+  }
+
+  .drawer-footer {
+    padding: 1.5rem; border-top: 1px solid $border; background: white;
+    display: flex; flex-direction: column; gap: 8px;
+    .btn-report-pdf, .btn-view-billing {
+      width: 100%; padding: 12px; border-radius: 12px; font-weight: 800; font-size: 0.85rem;
+      display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+    }
+    .btn-report-pdf { background: white; border: 1px solid $border; &:hover { border-color: $danger; color: $danger; } }
+    .btn-view-billing { background: rgba($primary, 0.05); border: 1px solid rgba($primary, 0.1); color: $primary; &:hover { background: $primary; color: white; } }
+  }
+}
+
+.cdk-drag-preview {
+  box-sizing: border-box;
+  background: white !important;
+  border-radius: 16px !important;
+  padding: 1.2rem !important;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2) !important;
+  border: 2px solid $primary !important;
+  font-family: 'Inter', sans-serif;
+  width: 280px; 
+  pointer-events: none;
+  
+  .card-priority-line {
+    width: 35px; height: 5px; border-radius: 10px; margin-bottom: 12px;
+    &[data-priority="high"] { background: $danger; }
+    &[data-priority="medium"] { background: $warning; }
+    &[data-priority="low"] { background: $primary; }
+  }
+
+  h4 { margin: 0; font-size: 1rem; color: $text-dark; font-weight: 700; }
+  .company-name { color: $text-muted; font-size: 0.85rem; display: block; margin-top: 4px; }
+  
+  .card-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 15px; padding-top: 10px; border-top: 1px solid #f1f5f9;
+    .deal-tag { font-weight: 800; color: $success; font-size: 0.95rem; }
+  }
+
+  .btn-mini-delete { display: none !important; }
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.3;
+  background: #e2e8f0 !important;
+  border: 2px dashed #94a3b8 !important;
+  border-radius: 16px !important;
+  margin-bottom: 1rem;
+  min-height: 130px; 
+}
+
+.cdk-drop-list-dragging .kanban-card:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.animate-fade-in { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
